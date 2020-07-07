@@ -1,3 +1,2 @@
-# nugetPackwithFiles
-My first git hub repo, this repo will consist of nuget package creation file.
-A nuget package with files adding while adding nuget package.
+# HelloWorldApplication
+Application in .net core to display hello world and deploy in azure as app service
