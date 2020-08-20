@@ -1,0 +1,69 @@
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
+    variables:
+      solution: '**/*.sln'
+      buildPlatform: 'Any CPU'
+      buildConfiguration: 'Release'  
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        command: 'restore'
+        restoreSolution: '**/*.sln'
+        feedsToUse: 'select'
+        vstsFeed: '1fe2ea80-9b3b-44de-85ca-84da9315eecd/1db12e91-57dc-4398-a650-2bc308e14b8e'
+        includeNuGetOrg: false
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.ArtifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    # - task: VSTest@2
+    #   inputs:
+    #     platform: '$(buildPlatform)'
+    #     configuration: '$(buildConfiguration)'
+    # - task: CopyFiles@2
+    #   inputs:        
+    #     Contents: '**\*.zip'
+    #     TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        targetFolder: $(Build.ArtifactStagingDirectory)
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop\Application'
+
+- stage: Deploy
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          downloadPath: '$(System.ArtifactsDirectory)'
+          artifactName: 'drop\Application'
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Visual Studio Professional Subscription(8323cdfa-4097-40cb-8124-4f7f2899570a)'
+          appType: 'webApp'
+          WebAppName: 'SampleHelloApp'
+          deployToSlotOrASE: true
+          ResourceGroupName: 'DC-AzureResourceGroup'
+          SlotName: 'production'
+          packageForLinux: '$(System.ArtifactsDirectory)/**/Application'
