@@ -62,7 +62,7 @@ stages:
           ConnectionType: 'AzureRM'
           azureSubscription: 'Visual Studio Professional Subscription(8323cdfa-4097-40cb-8124-4f7f2899570a)'
           appType: 'webApp'
-          WebAppName: 'SampleHelloApp'
+          WebAppName: 'gm-webapp-dev-1'
           deployToSlotOrASE: true
           ResourceGroupName: 'DC-AzureResourceGroup'
           SlotName: 'production'
