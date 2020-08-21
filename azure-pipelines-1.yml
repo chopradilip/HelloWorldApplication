@@ -1,0 +1,66 @@
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: restore
+        projects: '$(Parameters.RestoreBuildProjects)'
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        projects: '$(Parameters.RestoreBuildProjects)'
+        arguments: '--configuration $(BuildConfiguration)'
+    - task: DotNetCoreCLI@2
+      displayName: Test
+      inputs:
+        projects: '$(Parameters.UnitTestProjects)'
+        arguments: '--configuration $(BuildConfiguration)'
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration $(BuildConfiguration) --output "$(build.artifactstagingdirectory)"'
+        zipAfterPublish: True
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        PathtoPublish: '$(build.artifactstagingdirectory)'
+    
+- stage: Deploy
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: vs2017-win2016
+    #steps:
+    # - task: AzureRmWebAppDeployment@4
+    #   displayName: 'Deploy Azure App Service'
+    #   inputs:
+    #     azureSubscription: 'dc-netcoreapp - Azure'
+    #     WebAppName: 'dc-netcoreapp'
+    #     enableCustomDeployment: true
+    #     ExcludeFilesFromAppDataFlag: false
+    steps:
+      # - task: DownloadBuildArtifacts@0
+      #   inputs:
+      #     buildType: 'current'
+      #     downloadType: 'single'
+      #     downloadPath: '$(System.ArtifactsDirectory)'
+      #     artifactName: 'drop\Application'
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'Visual Studio Professional Subscription(8323cdfa-4097-40cb-8124-4f7f2899570a)'
+          appType: 'webApp'
+          WebAppName: 'dc-netcoreapp'
+          deployToSlotOrASE: true
+          ResourceGroupName: 'DC-AzureResourceGroup'
+          SlotName: 'production'
+          packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    
+     
