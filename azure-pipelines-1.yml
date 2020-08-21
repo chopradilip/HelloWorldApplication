@@ -8,10 +8,8 @@ stages:
     - task: DotNetCoreCLI@2
       displayName: Restore
       inputs:
-        command: 'restore'
+        command: restore
         projects: '$(Parameters.RestoreBuildProjects)'
-        feedsToUse: 'select'
-        vstsFeed: '1fe2ea80-9b3b-44de-85ca-84da9315eecd/1db12e91-57dc-4398-a650-2bc308e14b8e'
     - task: DotNetCoreCLI@2
       displayName: Build
       inputs:
